@@ -113,6 +113,8 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
     memcpy(buffer + header_len, data, len);
     
      compute_hash(buffer, total_len, id_out);
+     mkdir(".pes", 0755);
+mkdir(".pes/objects", 0755);
 
      if (object_exists(id_out)) {
         free(buffer);
@@ -123,12 +125,13 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
     object_path(id_out, path, sizeof(path));
 
     char dir[512];
+   snprintf(dir, sizeof(dir), ".pes/objects/%.2s", path + strlen(".pes/objects/"));
     strncpy(dir, path, sizeof(dir));
-    char *slash = strrchr(dir, '/');
-    if (slash) {
-        *slash = '\0';
-        mkdir(dir, 0755);
-    }
+char *slash = strrchr(dir, '/');
+if (slash) {
+    *slash = '\0';
+    mkdir(dir, 0755);
+}
 
       char tmp_path[520];
     snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
