@@ -146,7 +146,7 @@ int tree_from_index(ObjectID *id_out) {
 
         e->mode = index.entries[i].mode;
         strcpy(e->name, index.entries[i].path);
-        e->hash = index.entries[i].id;
+        e->hash = index.entries[i].hash;
     }
 
     void *data;
