@@ -130,6 +130,25 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
         mkdir(dir, 0755);
     }
 
+      char tmp_path[520];
+    snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
+
+    int fd = open(tmp_path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0) { free(buffer); return -1; }
+
+    write(fd, buffer, total_len);
+    fsync(fd);
+    close(fd);
+
+    rename(tmp_path, path);
+
+    int dfd = open(dir, O_DIRECTORY);
+    if (dfd >= 0) {
+        fsync(dfd);
+        close(dfd);
+    }
+
+
     free(buffer);
     return 0;
     
