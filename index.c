@@ -16,6 +16,7 @@
 // TODO functions:     index_load, index_save, index_add
 
 #include "index.h"
+#include "pes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,13 +148,13 @@ int index_load(Index *index) {
 
         char hex[HASH_HEX_SIZE + 1];
 
-        if (fscanf(f, "%o %64s %ld %ld %s\n",
+        if (fscanf(f, "%o %64s %u %u %s\n",
                    &e->mode, hex,
                    &e->mtime_sec, &e->size,
                    e->path) != 5)
             break;
 
-        hex_to_hash(hex, &e->id);
+        hex_to_hash(hex, &e->hash);
         index->count++;
     }
 
@@ -182,9 +183,9 @@ int index_save(const Index *index) {
 
     for (int i = 0; i < index->count; i++) {
         char hex[HASH_HEX_SIZE + 1];
-        hash_to_hex(&index->entries[i].id, hex);
+        hash_to_hex(&index->entries[i].hash, hex);
 
-        fprintf(f, "%o %s %ld %ld %s\n",
+        fprintf(f, "%o %s %u %u %s\n",
                 index->entries[i].mode,
                 hex,
                 index->entries[i].mtime_sec,
@@ -236,7 +237,7 @@ int index_add(Index *index, const char *path) {
     }
 
     e->mode = st.st_mode;
-    e->id = id;
+    e->hash = id;
     e->mtime_sec = st.st_mtime;
     e->size = st.st_size;
     strcpy(e->path, path);
