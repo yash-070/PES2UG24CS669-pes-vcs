@@ -148,7 +148,7 @@ int index_load(Index *index) {
 
         char hex[HASH_HEX_SIZE + 1];
 
-        if (fscanf(f, "%o %64s %u %u %s\n",
+        if (fscanf(f, "%o %64s %lu %lu %s\n",
                    &e->mode, hex,
                    &e->mtime_sec, &e->size,
                    e->path) != 5)
@@ -185,7 +185,7 @@ int index_save(const Index *index) {
         char hex[HASH_HEX_SIZE + 1];
         hash_to_hex(&index->entries[i].hash, hex);
 
-        fprintf(f, "%o %s %u %u %s\n",
+        fprintf(f, "%o %s %lu %lu %s\n",
                 index->entries[i].mode,
                 hex,
                 index->entries[i].mtime_sec,
