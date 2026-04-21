@@ -240,4 +240,6 @@ int index_add(Index *index, const char *path) {
     e->mtime_sec = st.st_mtime;
     e->size = st.st_size;
     strcpy(e->path, path);
+
+    return index_save(index);
 }
