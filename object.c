@@ -93,10 +93,28 @@ int object_exists(const ObjectID *id) {
 
 //
 // Returns 0 on success, -1 on error.
+
+
+
+
 int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out) {
     // TODO: Implement
-    (void)type; (void)data; (void)len; (void)id_out;
-    return -1;
+
+      char header[64];
+    const char *type_str = (type == OBJ_BLOB) ? "blob" :
+                           (type == OBJ_TREE) ? "tree" : "commit";
+    int header_len = snprintf(header, sizeof(header), "%s %zu", type_str, len) + 1;
+
+    size_t total_len = header_len + len;
+    uint8_t *buffer = malloc(total_len);
+    if (!buffer) return -1;
+
+    memcpy(buffer, header, header_len);
+    memcpy(buffer + header_len, data, len);
+    
+    free(buffer);
+    return 0;
+    
 }
 
 // Read an object from the store.
@@ -123,6 +141,53 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
 // Returns 0 on success, -1 on error (file not found, corrupt, etc.).
 int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_t *len_out) {
     // TODO: Implement
-    (void)id; (void)type_out; (void)data_out; (void)len_out;
-    return -1;
+    char path[512];
+    object_path(id, path, sizeof(path));
+
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    rewind(f);
+
+    uint8_t *buffer = malloc(size);
+    if (!buffer) { fclose(f); return -1; }
+
+    fread(buffer, 1, size, f);
+    fclose(f);
+
+    // Verify hash
+    ObjectID check;
+    compute_hash(buffer, size, &check);
+    if (memcmp(check.hash, id->hash, HASH_SIZE) != 0) {
+        free(buffer);
+        return -1;
+    }
+
+    // Parse header
+    char *null_byte = memchr(buffer, '\0', size);
+    if (!null_byte) { free(buffer); return -1; }
+
+    char header[64];
+    size_t header_len = null_byte - (char *)buffer;
+    memcpy(header, buffer, header_len);
+    header[header_len] = '\0';
+
+    char type_str[10];
+    size_t data_size;
+    sscanf(header, "%s %zu", type_str, &data_size);
+
+    if (strcmp(type_str, "blob") == 0) *type_out = OBJ_BLOB;
+    else if (strcmp(type_str, "tree") == 0) *type_out = OBJ_TREE;
+    else *type_out = OBJ_COMMIT;
+
+    void *data = malloc(data_size);
+    memcpy(data, null_byte + 1, data_size);
+
+    *data_out = data;
+    *len_out = data_size;
+
+    free(buffer);
+    return 0;
 }
