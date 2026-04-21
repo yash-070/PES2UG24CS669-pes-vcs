@@ -153,4 +153,7 @@ int tree_from_index(ObjectID *id_out) {
 
     int rc = object_write(OBJ_TREE, data, len, id_out);
     free(data);
+
+     return rc;
+
 }
