@@ -147,5 +147,7 @@ int tree_from_index(ObjectID *id_out) {
         e->hash = index.entries[i].id;
     }
 
-    
+    void *data;
+    size_t len;
+    if (tree_serialize(&tree, &data, &len) != 0) return -1;
 }
