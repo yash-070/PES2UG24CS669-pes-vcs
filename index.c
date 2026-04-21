@@ -137,8 +137,7 @@ int index_status(const Index *index) {
 int index_load(Index *index) {
     // TODO: Implement index loading
     // (See Lab Appendix for logical steps)
-    (void)index;
-    return -1;
+    
 }
 
 // Save the index to .pes/index atomically.
